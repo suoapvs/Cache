@@ -10,8 +10,6 @@ import java.util.Map;
  *
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  * @version 1.0
- * @see Cache
- * @see Key
  */
 final class CacheCleaner implements Runnable {
 
@@ -86,7 +84,7 @@ final class CacheCleaner implements Runnable {
      *                can be stored in the cache.
      */
     void setMaxSize(final int maxSize) {
-        this.maxSize = maxSize > 0 ? maxSize : DEFAULT_MAX_SIZE;
+        this.maxSize = (maxSize > 0) ? maxSize : DEFAULT_MAX_SIZE;
     }
 
     /**
@@ -103,10 +101,8 @@ final class CacheCleaner implements Runnable {
      * Cleans cache when cache.size() great maxSize.
      */
     private void cleanCache() {
-        if (this.cache.size() > getMaxSize()) {
-            final List<Key> keys = new ArrayList<>(
-                    this.cache.keySet()
-            );
+        if (isGreatMaxSize()) {
+            final List<Key> keys = new ArrayList<>(this.cache.keySet());
             Collections.sort(keys, new KeyComparator());
             cleanToNormalSize(keys);
         }
@@ -118,12 +114,29 @@ final class CacheCleaner implements Runnable {
      * @param keys a keys list.
      */
     private void cleanToNormalSize(final List<Key> keys) {
-        final int normalSize = getMaxSize() / 2;
         for (Key key : keys) {
             this.cache.remove(key);
-            if (this.cache.size() <= normalSize) {
+            if (isNormalSize()) {
                 break;
             }
         }
+    }
+
+    /**
+     * Checks if cache.size() great maxSize.
+     *
+     * @return true if cache.size() great maxSize, false otherwise.
+     */
+    private boolean isGreatMaxSize() {
+        return (this.cache.size() > getMaxSize());
+    }
+
+    /**
+     * Checks if cache.size() great normalSize is maxSize / 2.
+     *
+     * @return true if cache.size() great normalSize, false otherwise.
+     */
+    private boolean isNormalSize() {
+        return (this.cache.size() <= getMaxSize() / 2);
     }
 }

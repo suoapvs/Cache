@@ -7,7 +7,6 @@ package com.salimov.yurii.cache;
  * @param <T> a type of key.
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  * @version 1.0
- * @see Cache
  */
 final class Key<T> implements Comparable {
 
@@ -35,9 +34,8 @@ final class Key<T> implements Comparable {
      */
     Key(final T key, final long milliseconds) {
         this.key = key;
-        this.timeout = System.currentTimeMillis() + (
-                milliseconds > 0 ? milliseconds : DEFAULT_TIMEOUT
-        );
+        this.timeout = System.currentTimeMillis() +
+                (milliseconds > 0 ? milliseconds : DEFAULT_TIMEOUT);
     }
 
     /**
@@ -64,7 +62,7 @@ final class Key<T> implements Comparable {
      * @return Returns true if object is dead, otherwise returns false.
      */
     boolean isDead() {
-        return System.currentTimeMillis() > this.timeout;
+        return (System.currentTimeMillis() > this.timeout);
     }
 
     /**
@@ -100,7 +98,11 @@ final class Key<T> implements Comparable {
                 result = true;
             } else if (this.getClass() == object.getClass()) {
                 final Key other = (Key) object;
-                result = this.key != null ? this.key.equals(other.key) : other.key == null;
+                if (this.key != null) {
+                    result = this.key.equals(other.key);
+                } else {
+                    result = other.key == null;
+                }
             }
         }
         return result;
@@ -113,8 +115,10 @@ final class Key<T> implements Comparable {
      */
     @Override
     public String toString() {
-        return this.key.toString()
-                + "\nTimeout = " + this.timeout;
+        return "Key{" +
+                "key=" + this.key +
+                ", timeout=" + this.timeout +
+                '}';
     }
 
     /**
@@ -124,7 +128,7 @@ final class Key<T> implements Comparable {
      */
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : 0;
+        return this.key.hashCode();
     }
 
     /**

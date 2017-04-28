@@ -1,23 +1,16 @@
 package com.salimov.yurii.cache;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * The class implements a set of methods for working with cache.
  *
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  * @version 1.0
- * @see CacheCleaner
- * @see ThreadDaemonFactory
- * @see Key
  */
 public final class Cache {
 
@@ -42,23 +35,18 @@ public final class Cache {
     private static volatile Map<Key, Object> cache;
 
     /**
+     * Сache is modified.
+     */
+    private static volatile boolean isNewCache;
+
+    /**
      * Static constructor.
      * Creates and starts ScheduledExecutorService.
-     * @see CacheCleaner
-     * @see ThreadDaemonFactory
      */
     static {
         cache = new ConcurrentHashMap<>();
-        final ScheduledExecutorService scheduler =
-                Executors.newSingleThreadScheduledExecutor(
-                        new ThreadDaemonFactory()
-                );
-        scheduler.scheduleAtFixedRate(
-                new CacheCleaner(cache),
-                SCHEDULER_INITIAL_DELAY,
-                SCHEDULER_PERIOD,
-                TIME_UNIT
-        );
+        setNewCache();
+        createScheduledExecutorService();
     }
 
     /**
@@ -81,14 +69,27 @@ public final class Cache {
             final Object object,
             final long milliseconds
     ) {
+        return put(new Key<>(key, milliseconds), object);
+    }
+
+    /**
+     * Saves object in the cache.
+     *
+     * @param <T>    a type of key.
+     * @param key    a object key in the cache.
+     * @param object a object to save.
+     * @return The saving object.
+     */
+    private static <T> Object put(
+            final Key<T> key,
+            final Object object
+    ) {
         Object savingObject = null;
-        if ((key != null) && (object != null)) {
-            savingObject = cache.put(
-                    new Key<>(key, milliseconds),
-                    object
-            );
+        if (isNotNull(key) && isNotNull(object)) {
+            savingObject = getCache().put(key, object);
+            setNewCache();
         }
-        return savingObject != null ? savingObject : object;
+        return isNotNull(savingObject) ? savingObject : object;
     }
 
     /**
@@ -151,10 +152,7 @@ public final class Cache {
             final long seconds,
             final long milliseconds
     ) {
-        return put(
-                key, object,
-                minutes + 60 * hours, seconds, milliseconds
-        );
+        return put(key, object, minutes + 60 * hours, seconds, milliseconds);
     }
 
     /**
@@ -184,7 +182,7 @@ public final class Cache {
             final Map<T, Object> map,
             final long milliseconds
     ) {
-        if (map != null && !map.isEmpty()) {
+        if (isNotEmptyMap(map)) {
             for (Map.Entry<T, Object> entry : map.entrySet()) {
                 put(entry.getKey(), entry.getValue(), milliseconds);
             }
@@ -258,16 +256,16 @@ public final class Cache {
 
     /**
      * Returns object from cache with key.
-     * Returns {@code null} if key is {@code null}.
+     * Returns null if key is null.
      *
      * @param <T> a type of key.
      * @param key a object key in the cache.
-     * @return The object with key or {@code null}.
+     * @return The object with key or null.
      */
     public static <T> Object get(final T key) {
         Object object = null;
-        if (key != null) {
-            object = cache.get(new Key<>(key));
+        if (isNotNull(key)) {
+            object = get(new Key<>(key));
         }
         return object;
     }
@@ -279,29 +277,25 @@ public final class Cache {
      * @return The objects with key or empty list.
      */
     public static Collection<Object> getAll(final String subKey) {
-        Collection<Object> objects = null;
-        if (subKey != null) {
-            objects = cache.keySet()
-                    .stream()
-                    .filter(
-                            key -> key.getKey().toString()
-                                    .contains(subKey)
-                    ).map(key -> cache.get(key))
-                    .collect(Collectors.toList());
+        final List<Object> objects = new ArrayList<>();
+        if (isNotNull(subKey)) {
+            getCache().keySet().stream()
+                    .filter(key -> containsKey(key, subKey))
+                    .forEach(key -> objects.add(get(key)));
         }
         return objects;
     }
 
     /**
      * Removes object from cache with key.
-     * Removes object if key is not {@code null}.
+     * Removes object if key is not null.
      *
      * @param <T> a type of key.
      * @param key a object key in the cache.
      */
     public static <T> void remove(final T key) {
-        if (key != null) {
-            cache.remove(new Key<>(key));
+        if (isNotNull(key)) {
+            remove(new Key<>(key));
         }
     }
 
@@ -314,17 +308,14 @@ public final class Cache {
      * @param keys a key string.
      */
     public static void removeAll(final String... keys) {
-        if (keys != null && keys.length > 0) {
+        if (isNotNull(keys) && keys.length > 0) {
             new Thread(() -> {
                 final Collection<Key> cacheKeys = new ArrayList<>(cache.keySet());
-                for (String _key : keys) {
-                    if (_key != null) {
+                for (String sKey : keys) {
+                    if (isNotNull(sKey)) {
                         cacheKeys.stream()
-                                .filter(
-                                        key -> key.getKey()
-                                                .toString()
-                                                .contains(_key)
-                                ).forEach(key -> cache.remove(key));
+                                .filter(key -> containsKey(key, sKey))
+                                .forEach(Cache::remove);
                     }
                 }
             }).start();
@@ -339,7 +330,7 @@ public final class Cache {
      */
     public static <T> void setAll(final Map<T, Object> map) {
         cache = new ConcurrentHashMap<>();
-        if (map != null) {
+        if (isNotEmptyMap(map)) {
             for (Map.Entry<T, Object> entry : map.entrySet()) {
                 put(entry.getKey(), entry.getValue());
             }
@@ -350,7 +341,7 @@ public final class Cache {
      * Clears the cache.
      */
     public static void clear() {
-        cache.clear();
+        getCache().clear();
     }
 
     /**
@@ -360,18 +351,10 @@ public final class Cache {
      */
     public static void clear(final Class object) {
         if (object != null) {
-            cache.entrySet()
+            getCache().entrySet()
                     .stream()
-                    .filter(
-                            entry -> entry.getValue()
-                                    .getClass()
-                                    .equals(object)
-                    )
-                    .forEach(
-                            entry -> cache.remove(
-                                    entry.getKey()
-                            )
-                    );
+                    .filter(entry -> filterByClass(entry, object))
+                    .forEach(entry -> remove(entry.getKey()));
         }
     }
 
@@ -380,11 +363,10 @@ public final class Cache {
      *
      * @param <T> a type of key.
      * @param key a object key in the cache.
-     * @return {@code true} if object is exist,
-     * {@code false} otherwise.
+     * @return true if object is exist, false otherwise.
      */
     public static <T> boolean exist(final T key) {
-        return cache.containsKey(new Key<>(key));
+        return isNotNull(key) && exist(new Key<>(key));
     }
 
     /**
@@ -397,28 +379,11 @@ public final class Cache {
     public static Map<String, String> getEntriesToString() {
         final String key = "Cache information";
         Map<String, String> result = (Map) get(key);
-        if ((result == null) || (result.size() != cache.size())) {
+        if (isNewCache()) {
             result = getNewEntriesToString(key);
             put(key, result);
+            setOldCache();
         }
-        return result;
-    }
-
-    /**
-     * Returns information about objects in cache.
-     *
-     * @param key a object key in the cache.
-     * @return The maps with entries.
-     */
-    private static Map<String, String> getNewEntriesToString(final String key) {
-        Map<String, String> result = new HashMap<>();
-        for (Map.Entry<Key, Object> entry : cache.entrySet()) {
-            result.put(
-                    entry.getKey().getKey().toString(),
-                    entry.getValue().getClass().getName()
-            );
-        }
-        result.put(key, Map.class.getName());
         return result;
     }
 
@@ -429,5 +394,169 @@ public final class Cache {
      */
     public static int getSize() {
         return cache.size();
+    }
+
+    /**
+     * Checks if exist object with the key in the cache.
+     *
+     * @param <T> a type of key.
+     * @param key a object key in the cache.
+     * @return true if object is exist, false otherwise.
+     */
+    private static <T> boolean exist(final Key<T> key) {
+        return isNotNull(key) && cache.containsKey(key);
+    }
+
+    /**
+     * Returns object from cache with key.
+     * Returns null if key is null.
+     *
+     * @param <T> a type of key.
+     * @param key a object key in the cache.
+     * @return The object with key or null.
+     */
+    private static <T> Object get(final Key<T> key) {
+        Object object = null;
+        if (isNotNull(key)) {
+            object = getCache().get(key);
+        }
+        return object;
+    }
+
+    /**
+     * Removes object from cache with key.
+     * Removes object if key is not null.
+     *
+     * @param <T> a type of key.
+     * @param key a object key in the cache.
+     */
+    private static <T> void remove(final Key<T> key) {
+        if (isNotNull(key)) {
+            getCache().remove(key);
+            setNewCache();
+        }
+    }
+
+    /**
+     * Returns information about objects in cache.
+     *
+     * @param key a object key in the cache.
+     * @return The maps with entries.
+     */
+    private static Map<String, String> getNewEntriesToString(final String key) {
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<Key, Object> entry : getCache().entrySet()) {
+            result.put(
+                    entry.getKey().getKey().toString(),
+                    entry.getValue().getClass().getName()
+            );
+        }
+        result.put(key, Map.class.getName());
+        return result;
+    }
+
+    /**
+     * Checks if key contains subKey.
+     *
+     * @param key    a object key in the cache.
+     * @param subKey a object key in the cache.
+     * @return true if key contains subKey, false otherwise.
+     */
+    private static boolean containsKey(final Key key, final String subKey) {
+        return key.getKey().toString().contains(subKey);
+    }
+
+    /**
+     * Filters entry object class with input class.
+     *
+     * @param entry  a entry to filter.
+     * @param object a class to equals.
+     * @param <T>    a type of key.
+     * @return true if entry class equals to object class, false otherwise.
+     */
+    private static <T> boolean filterByClass(
+            final Map.Entry<T, Object> entry,
+            final Class object
+    ) {
+        return entry.getValue().getClass().equals(object);
+    }
+
+    /**
+     * Checks if input object is not null.
+     *
+     * @param object a object to check.
+     * @return true if object is not null, false otherwise.
+     */
+    private static boolean isNotNull(final Object object) {
+        return (object != null);
+    }
+
+    /**
+     * Checks if input map is not empty.
+     *
+     * @param map a map to check.
+     * @return true if map is not empty, false otherwise.
+     */
+    private static boolean isNotEmptyMap(final Map map) {
+        return isNotNull(map) && !map.isEmpty();
+    }
+
+    /**
+     * Сache is modified.
+     *
+     * @return true if cache is modified, false otherwise.
+     */
+    private static boolean isNewCache() {
+        return isNewCache;
+    }
+
+    /**
+     * Sets that the cache has been changed.
+     */
+    private static void setNewCache() {
+        isNewCache = true;
+    }
+
+    /**
+     * Sets that the cache has been not changed.
+     */
+    private static void setOldCache() {
+        isNewCache = false;
+    }
+
+    /**
+     * Returns the cache map.
+     *
+     * @return The cache map.
+     */
+    private static Map<Key, Object> getCache() {
+        return cache;
+    }
+
+    /**
+     * Creates and configures a new ScheduledExecutorService.
+     */
+    private static void createScheduledExecutorService() {
+        Executors.newSingleThreadScheduledExecutor(
+                createThreadFactory()
+        ).scheduleAtFixedRate(
+                new CacheCleaner(getCache()),
+                SCHEDULER_INITIAL_DELAY,
+                SCHEDULER_PERIOD,
+                TIME_UNIT
+        );
+    }
+
+    /**
+     * Creates a new threads factory for constructing a new thread-demand.
+     *
+     * @return The new threads factory.
+     */
+    private static ThreadFactory createThreadFactory() {
+        return runnable -> {
+            final Thread thread = new Thread(runnable);
+            thread.setDaemon(true);
+            return thread;
+        };
     }
 }
