@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  */
-public final class Validator {
+final class Validator {
 
     /**
      * Private Constructor.
@@ -26,7 +26,7 @@ public final class Validator {
      * @param object the Object to check, may be null
      * @return true if the Object is null, false otherwise.
      */
-    public static boolean isNull(final Object object) {
+    static boolean isNull(final Object object) {
         return (object == null);
     }
 
@@ -40,26 +40,8 @@ public final class Validator {
      * @param object the Object to check, may be null
      * @return true if the Object is not null, false otherwise.
      */
-    public static boolean isNotNull(final Object object) {
+    static boolean isNotNull(final Object object) {
         return !isNull(object);
-    }
-
-    /**
-     * Checks if a Collection is null or empty.
-     * <pre>
-     *     isEmpty(null) = true
-     *     isEmpty(new ArrayList()) = true
-     *
-     *     Collection collection = new ArrayList();
-     *     collection.add(new Object);
-     *     isEmpty(collection) = false
-     * </pre>
-     *
-     * @param collection the Collection to check, may be null
-     * @return true if the Collection is null or empty, false otherwise.
-     */
-    public static boolean isEmpty(final Collection collection) {
-        return isNull(collection) || collection.isEmpty();
     }
 
     /**
@@ -77,26 +59,8 @@ public final class Validator {
      * @return true if the Collection is not null and not empty,
      * false otherwise.
      */
-    public static boolean isNotEmpty(final Collection collection) {
-        return !isEmpty(collection);
-    }
-
-    /**
-     * Checks if a Map is null or empty.
-     * <pre>
-     *     isEmpty(null) = true
-     *     isEmpty(new HashMap()) = true
-     *
-     *     Map map = new HashMap();
-     *     map.put(new Object, new Object);
-     *     isEmpty(map) = false
-     * </pre>
-     *
-     * @param map the Map to check, may be null
-     * @return true if the Map is is null or empty, false otherwise.
-     */
-    public static boolean isEmpty(final Map map) {
-        return isNull(map) || map.isEmpty();
+    static boolean isNotEmpty(final Collection collection) {
+        return isNotNull(collection) && !collection.isEmpty();
     }
 
     /**
@@ -114,26 +78,8 @@ public final class Validator {
      * @return true if the Map is not empty or not null,
      * false otherwise.
      */
-    public static boolean isNotEmpty(final Map map) {
-        return !isEmpty(map);
-    }
-
-    /**
-     * Checks if a CharSequence is whitespace, empty ("") or null.
-     * <pre>
-     *     isEmpty(null) = true
-     *     isEmpty("") = true
-     *     isEmpty(" ") = true
-     *     isEmpty("bob") = false
-     *     isEmpty("  bob  ") = false
-     * </pre>
-     *
-     * @param string the CharSequence to check, may be null
-     * @return true if the CharSequence is null, empty or whitespace,
-     * false otherwise.
-     */
-    public static boolean isEmpty(final String string) {
-        return isNull(string) || string.equals("");
+    static boolean isNotEmpty(final Map map) {
+        return isNotNull(map) && !map.isEmpty();
     }
 
     /**
@@ -150,25 +96,8 @@ public final class Validator {
      * @return true if the CharSequence is not empty and not null
      * and not whitespace, false otherwise.
      */
-    public static boolean isNotEmpty(final String string) {
-        return !isEmpty(string);
-    }
-
-    /**
-     * Checks if a array is null or empty.
-     * <pre>
-     *     isEmpty(null) = true
-     *     isEmpty(new Object[]{}) = true
-     *     isEmpty(new Object[]{new Object()}) = false
-     *     isEmpty(new Object[]{new Object(), new Object()}) = false
-     * </pre>
-     *
-     * @param array the array to check, may be null
-     * @param <T>   extends the Object class.
-     * @return true if the array is null or empty, false otherwise.
-     */
-    public static <T> boolean isEmpty(final T[] array) {
-        return isNull(array) || (array.length == 0);
+    static boolean isNotEmpty(final String string) {
+        return isNotNull(string) && !string.equals("");
     }
 
     /**
@@ -185,7 +114,7 @@ public final class Validator {
      * @return true if the array is not null and not empty,
      * false otherwise.
      */
-    public static <T> boolean isNotEmpty(final T[] array) {
-        return !isEmpty(array);
+    static <T> boolean isNotEmpty(final T[] array) {
+        return isNotNull(array) && (array.length > 0);
     }
 }

@@ -2,41 +2,43 @@ package com.salimov.yurii.cache;
 
 import java.util.Comparator;
 
+import static com.salimov.yurii.cache.Validator.isNull;
+
 /**
  * The class implements a set of methods for working
  * with comparators for {@link Key}.
  *
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
- * @version 1.0
  */
 final class KeyComparator implements Comparator<Key> {
 
     /**
-     * The class implements a method for working with comparator
-     * for {@link Key} by timeout.
+     * Compares two keys.
+     * <pre>
+     *     compare(null, null) = 0
+     *     compare(null, new Key()) = -1
+     *     compare(new Key(), null) = 1
+     *     compare(new Key(), new Key()) = compares it
+     * </pre>
+     *
+     * @param first  the first key to be compared.
+     * @param second the second key to be compared.
+     * @return A negative integer, zero, or a positive integer as the
+     * first key is less than, equal to, or greater than the
+     * second key.
      */
     @Override
-    public int compare(Key key1, Key key2) {
+    public int compare(final Key first, final Key second) {
         int result;
-        if (isNull(key1) && isNull(key2)) {
+        if (isNull(first) && isNull(second)) {
             result = 0;
-        } else if (isNull(key1)) {
+        } else if (isNull(first)) {
             result = -1;
-        } else if (isNull(key2)) {
+        } else if (isNull(second)) {
             result = 1;
         } else {
-            result = (int) (key1.getTimeout() - key2.getTimeout());
+            result = first.compareTo(second);
         }
         return result;
-    }
-
-    /**
-     * Checks if input key is null.
-     *
-     * @param key a key to check.
-     * @return true if key is null, false otherwise.
-     */
-    private static boolean isNull(final Key key) {
-        return (key == null);
     }
 }

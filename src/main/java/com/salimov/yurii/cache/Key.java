@@ -1,12 +1,14 @@
 package com.salimov.yurii.cache;
 
+import static com.salimov.yurii.cache.Validator.isNotNull;
+import static com.salimov.yurii.cache.Validator.isNull;
+
 /**
  * The class implements a set of methods
  * for working with Key object in the cache.
  *
  * @param <T> a type of key.
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
- * @version 1.0
  */
 final class Key<T> implements Comparable {
 
@@ -19,7 +21,7 @@ final class Key<T> implements Comparable {
     /**
      * Value of the Key.
      */
-    private final T key;
+    private final T value;
 
     /**
      * The lifetime of object.
@@ -29,11 +31,11 @@ final class Key<T> implements Comparable {
     /**
      * Constructor.
      *
-     * @param key          a object key in the cache.
-     * @param milliseconds a lifetime of objects (milliseconds).
+     * @param value        the object key in the cache.
+     * @param milliseconds the lifetime of objects (milliseconds).
      */
-    Key(final T key, final long milliseconds) {
-        this.key = key;
+    Key(final T value, final long milliseconds) {
+        this.value = value;
         this.timeout = System.currentTimeMillis() +
                 (milliseconds > 0 ? milliseconds : DEFAULT_TIMEOUT);
     }
@@ -41,19 +43,10 @@ final class Key<T> implements Comparable {
     /**
      * Constructor.
      *
-     * @param key a object key in the cache.
+     * @param value the object key in the cache.
      */
-    Key(final T key) {
-        this(key, DEFAULT_TIMEOUT);
-    }
-
-    /**
-     * Gets key value.
-     *
-     * @return The key.
-     */
-    T getKey() {
-        return this.key;
+    Key(final T value) {
+        this(value, DEFAULT_TIMEOUT);
     }
 
     /**
@@ -75,37 +68,21 @@ final class Key<T> implements Comparable {
     }
 
     /**
+     * Gets key value.
+     *
+     * @return The value.
+     */
+    T getValue() {
+        return this.value;
+    }
+
+    /**
      * Returns a object lifetime.
      *
      * @return The lifetime of object.
      */
     long getTimeout() {
         return this.timeout;
-    }
-
-    /**
-     * Indicates whether some other object is "equal to" this one.
-     *
-     * @param object a reference object with which to compare.
-     * @return Returns true if this object is the same
-     * as the object argument, otherwise returns false.
-     */
-    @Override
-    public boolean equals(final Object object) {
-        boolean result = false;
-        if (object != null) {
-            if (super.equals(object)) {
-                result = true;
-            } else if (this.getClass() == object.getClass()) {
-                final Key other = (Key) object;
-                if (this.key != null) {
-                    result = this.key.equals(other.key);
-                } else {
-                    result = other.key == null;
-                }
-            }
-        }
-        return result;
     }
 
     /**
@@ -116,9 +93,34 @@ final class Key<T> implements Comparable {
     @Override
     public String toString() {
         return "Key{" +
-                "key=" + this.key +
+                "value=" + this.value +
                 ", timeout=" + this.timeout +
                 '}';
+    }
+
+    /**
+     * Indicates whether some other object is "equal to" this one.
+     *
+     * @param object the reference object with which to compare.
+     * @return Returns true if this object is the same
+     * as the object argument, otherwise returns false.
+     */
+    @Override
+    public boolean equals(final Object object) {
+        boolean result = false;
+        if (isNotNull(object)) {
+            if (super.equals(object)) {
+                result = true;
+            } else if (this.getClass() == object.getClass()) {
+                final Key other = (Key) object;
+                if (isNotNull(this.value)) {
+                    result = this.value.equals(other.value);
+                } else {
+                    result = isNull(other.value);
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -128,7 +130,7 @@ final class Key<T> implements Comparable {
      */
     @Override
     public int hashCode() {
-        return this.key.hashCode();
+        return this.value.hashCode();
     }
 
     /**
@@ -141,16 +143,12 @@ final class Key<T> implements Comparable {
      */
     @Override
     public int compareTo(final Object object) {
-        int result = 0;
-        if (object == null) {
+        int result;
+        if (isNull(object)) {
             result = -1;
         } else {
             final Key other = (Key) object;
-            if (this.timeout < other.timeout) {
-                result = 1;
-            } else if (this.timeout > other.timeout) {
-                result = -1;
-            }
+            result = (int) (other.timeout - this.timeout);
         }
         return result;
     }
