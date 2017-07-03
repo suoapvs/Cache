@@ -2,8 +2,6 @@ package com.salimov.yurii.cache;
 
 import java.util.Comparator;
 
-import static com.salimov.yurii.cache.Validator.isNull;
-
 /**
  * The class implements a set of methods for working
  * with comparators for {@link Key}.
@@ -30,11 +28,11 @@ final class KeyComparator implements Comparator<Key> {
     @Override
     public int compare(final Key first, final Key second) {
         int result;
-        if (isNull(first) && isNull(second)) {
+        if (Validator.isNull(first) && Validator.isNull(second)) {
             result = 0;
-        } else if (isNull(first)) {
+        } else if (Validator.isNull(first)) {
             result = -1;
-        } else if (isNull(second)) {
+        } else if (Validator.isNull(second)) {
             result = 1;
         } else {
             result = first.compareTo(second);

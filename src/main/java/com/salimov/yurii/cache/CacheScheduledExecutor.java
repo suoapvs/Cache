@@ -3,7 +3,8 @@ package com.salimov.yurii.cache;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+
+import static com.salimov.yurii.cache.CacheConstants.*;
 
 /**
  * The class implements a set of methods for creating and starting
@@ -12,21 +13,6 @@ import java.util.concurrent.TimeUnit;
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  */
 final class CacheScheduledExecutor {
-
-    /**
-     * The time to delay first execution (5 hours).
-     */
-    private final static long SCHEDULER_INITIAL_DELAY = 5L;
-
-    /**
-     * The period between successive executions (3 hour).
-     */
-    private final static long SCHEDULER_PERIOD = 3L;
-
-    /**
-     * Time unit representing one hour.
-     */
-    private final static TimeUnit TIME_UNIT = TimeUnit.HOURS;
 
     /**
      * The task to execute.
@@ -45,7 +31,7 @@ final class CacheScheduledExecutor {
     /**
      * Creates and starts a new ScheduledExecutorService.
      */
-    public void go() {
+    void go() {
         final ScheduledExecutorService service = createScheduledExecutorService();
         scheduleAtFixedRate(service);
     }
@@ -61,7 +47,7 @@ final class CacheScheduledExecutor {
                 this.command,
                 SCHEDULER_INITIAL_DELAY,
                 SCHEDULER_PERIOD,
-                TIME_UNIT
+                SCHEDULER_TIME_UNIT
         );
     }
 

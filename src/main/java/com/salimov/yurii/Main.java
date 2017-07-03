@@ -10,10 +10,11 @@ import java.util.Map;
 public class Main {
 
     public static void main(String[] args) {
+        final Cache cache = Cache.getTemporaryCache();
         for (int i = 0; i < 100; i++) {
-            Cache.put("Key #" + i, new Object());
+            cache.put("Key #" + i, new Object());
         }
-        for (Map.Entry<String, String> entry : Cache.getEntriesToString().entrySet()) {
+        for (Map.Entry<String, String> entry : cache.getEntriesToString().entrySet()) {
             System.out.println(entry.getKey() + " - " + entry.getValue());
         }
     }

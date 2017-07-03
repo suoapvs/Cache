@@ -1,27 +1,19 @@
 package com.salimov.yurii.cache;
 
-import static com.salimov.yurii.cache.Validator.isNotNull;
-import static com.salimov.yurii.cache.Validator.isNull;
+import static com.salimov.yurii.cache.CacheConstants.KEY_TIMEOUT;
 
 /**
  * The class implements a set of methods
  * for working with Key object in the cache.
  *
- * @param <T> a type of key.
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
  */
-final class Key<T> implements Comparable {
-
-    /**
-     * The default lifetime of objects (milliseconds).
-     * 864000000 milliseconds = 10 days
-     */
-    private static final long DEFAULT_TIMEOUT = 864000000L;
+final class Key implements Comparable {
 
     /**
      * Value of the Key.
      */
-    private final T value;
+    private final Object value;
 
     /**
      * The lifetime of object.
@@ -34,10 +26,10 @@ final class Key<T> implements Comparable {
      * @param value        the object key in the cache.
      * @param milliseconds the lifetime of objects (milliseconds).
      */
-    Key(final T value, final long milliseconds) {
+    Key(final Object value, final long milliseconds) {
         this.value = value;
         this.timeout = System.currentTimeMillis() +
-                (milliseconds > 0 ? milliseconds : DEFAULT_TIMEOUT);
+                (milliseconds > 0 ? milliseconds : KEY_TIMEOUT);
     }
 
     /**
@@ -45,44 +37,8 @@ final class Key<T> implements Comparable {
      *
      * @param value the object key in the cache.
      */
-    Key(final T value) {
-        this(value, DEFAULT_TIMEOUT);
-    }
-
-    /**
-     * Checks whether the object is dead.
-     *
-     * @return Returns true if object is dead, otherwise returns false.
-     */
-    boolean isDead() {
-        return (System.currentTimeMillis() > this.timeout);
-    }
-
-    /**
-     * Checks whether the object is alive.
-     *
-     * @return Returns true if object is alive, otherwise returns false.
-     */
-    boolean isLive() {
-        return !isDead();
-    }
-
-    /**
-     * Gets key value.
-     *
-     * @return The value.
-     */
-    T getValue() {
-        return this.value;
-    }
-
-    /**
-     * Returns a object lifetime.
-     *
-     * @return The lifetime of object.
-     */
-    long getTimeout() {
-        return this.timeout;
+    Key(final Object value) {
+        this(value, 0);
     }
 
     /**
@@ -108,15 +64,15 @@ final class Key<T> implements Comparable {
     @Override
     public boolean equals(final Object object) {
         boolean result = false;
-        if (isNotNull(object)) {
+        if (Validator.isNotNull(object)) {
             if (super.equals(object)) {
                 result = true;
             } else if (this.getClass() == object.getClass()) {
                 final Key other = (Key) object;
-                if (isNotNull(this.value)) {
+                if (Validator.isNotNull(this.value)) {
                     result = this.value.equals(other.value);
                 } else {
-                    result = isNull(other.value);
+                    result = Validator.isNull(other.value);
                 }
             }
         }
@@ -144,12 +100,48 @@ final class Key<T> implements Comparable {
     @Override
     public int compareTo(final Object object) {
         int result;
-        if (isNull(object)) {
+        if (Validator.isNull(object)) {
             result = -1;
         } else {
             final Key other = (Key) object;
             result = (int) (other.timeout - this.timeout);
         }
         return result;
+    }
+
+    /**
+     * Checks whether the object is dead.
+     *
+     * @return Returns true if object is dead, otherwise returns false.
+     */
+    boolean isDead() {
+        return (System.currentTimeMillis() > this.timeout);
+    }
+
+    /**
+     * Checks whether the object is alive.
+     *
+     * @return Returns true if object is alive, otherwise returns false.
+     */
+    boolean isLive() {
+        return !isDead();
+    }
+
+    /**
+     * Gets key value.
+     *
+     * @return The value.
+     */
+    Object getValue() {
+        return this.value;
+    }
+
+    /**
+     * Returns a object lifetime.
+     *
+     * @return The lifetime of object.
+     */
+    long getTimeout() {
+        return this.timeout;
     }
 }
