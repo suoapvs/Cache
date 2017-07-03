@@ -1,5 +1,7 @@
 package com.salimov.yurii.cache;
 
+import com.salimov.yurii.cache.temporary.Key;
+import com.salimov.yurii.cache.temporary.KeyComparator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -30,14 +32,14 @@ public class KeyComparatorTest {
     @Test
     public void whenCompareWithNullFirstKeyThenReturnNegativeOne() {
         final Key first = null;
-        final Key second = new Key<>(ANY_STRING);
+        final Key second = new Key(ANY_STRING);
         final int result = comparator.compare(first, second);
         assertTrue(result == -1);
     }
 
     @Test
     public void whenCompareWithNullSecondKeyThenReturnOne() {
-        final Key first = new Key<>(ANY_STRING);
+        final Key first = new Key(ANY_STRING);
         final Key second = null;
         final int result = comparator.compare(first, second);
         assertTrue(result == 1);
@@ -45,8 +47,8 @@ public class KeyComparatorTest {
 
     @Test
     public void whenCompareThenReturnSomeValue() {
-        final Key first = new Key<>(ANY_STRING);
-        final Key second = new Key<>(ANY_STRING);
+        final Key first = new Key(ANY_STRING);
+        final Key second = new Key(ANY_STRING);
         final int result = comparator.compare(first, second);
     }
 }

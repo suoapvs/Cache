@@ -1,12 +1,12 @@
 package com.salimov.yurii.cache;
 
+import com.salimov.yurii.cache.temporary.CacheCleaner;
+import com.salimov.yurii.cache.temporary.Key;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Yurii Salimov (yuriy.alex.salimov@gmail.com)
@@ -20,13 +20,13 @@ public class CacheCleanerTest {
 
     @BeforeClass
     public static void beforeClass() {
-        final Map<Key, Object> cache = createCacheMap();
+        final TemporaryCache cache = createCache();
         cleaner = new CacheCleaner(cache, MAX_SIZE);
     }
 
     @Test
     public void whenAddNegativeMaxSizeThenGetPositiveDefaultSize() {
-        final Map<Key, Object> cache = new HashMap<>();
+        final TemporaryCache cache = createCache();
         final CacheCleaner cleaner = new CacheCleaner(cache, -MAX_SIZE);
         final int size = cleaner.getMaxSize();
         assertTrue(size > 0);
@@ -51,28 +51,19 @@ public class CacheCleanerTest {
 
     @Test
     public void whenCreateCacheMapThenReturnNotEmptyMap() {
-        final Map<Key, Object> cache = createCacheMap();
+        final TemporaryCache cache = createCache();
         assertFalse(cache.isEmpty());
     }
 
-    @Test
-    public void whenCreateCacheMapThenReturnMapWithNotNullObjects() {
-        final Map<Key, Object> map = createCacheMap();
-        for (Map.Entry<Key, Object> entry : map.entrySet()) {
-            assertNotNull(entry.getKey());
-            assertNotNull(entry.getValue());
-        }
-    }
-
-    private static Map<Key, Object> createCacheMap() {
-        final Map<Key, Object> map = new HashMap<>();
+    private static TemporaryCache createCache() {
+        final TemporaryCache cache = Cache.getTemporaryCache();
         Key key;
         Object object;
         for (int i = 0; i < 2 * MAX_SIZE; i++) {
             object = new Object();
-            key = new Key<>(object.toString(), DEFAULT_TIMEOUT);
-            map.put(key, object);
+            key = new Key(object.toString(), DEFAULT_TIMEOUT);
+            cache.put(key, object);
         }
-        return map;
+        return cache;
     }
 }

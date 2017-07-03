@@ -1,5 +1,6 @@
 package com.salimov.yurii.cache;
 
+import com.salimov.yurii.cache.temporary.Key;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,21 +15,21 @@ public class KeyTest {
 
     @Test
     public void whenCallConstructorWithOneParameter() {
-        final Key<String> key = new Key<>(ANY_STRING);
-        final String keyValue = key.getValue();
+        final Key key = new Key(ANY_STRING);
+        final Object keyValue = key.getValue();
         assertEquals(keyValue, ANY_STRING);
     }
 
     @Test
     public void whenCallConstructorWithTwoParameter() {
-        final Key<String> key = new Key<>(ANY_STRING, DEFAULT_TIMEOUT);
-        final String keyValue = key.getValue();
+        final Key key = new Key(ANY_STRING, DEFAULT_TIMEOUT);
+        final Object keyValue = key.getValue();
         assertEquals(keyValue, ANY_STRING);
     }
 
     @Test
     public void whenSetSmallTimeOutThenKeyIsDead() {
-        final Key<String> key = new Key<>(ANY_STRING, 1);
+        final Key key = new Key(ANY_STRING, 1);
         sleepOneSecond();
         final boolean deaden = key.isDead();
         assertTrue(deaden);
@@ -38,7 +39,7 @@ public class KeyTest {
 
     @Test
     public void whenSetBigTimeOutThenKeyIsDead() {
-        final Key<String> key = new Key<>(ANY_STRING, 100 * DEFAULT_TIMEOUT);
+        final Key key = new Key(ANY_STRING, 100 * DEFAULT_TIMEOUT);
         final boolean deaden = key.isDead();
         assertFalse(deaden);
         final boolean lived = key.isLive();
@@ -47,7 +48,7 @@ public class KeyTest {
 
     @Test
     public void toStringTest() {
-        final Key<String> key = new Key<>(ANY_STRING);
+        final Key key = new Key(ANY_STRING);
         final String testString = "Key{" +
                 "value=" + key.getValue() +
                 ", timeout=" + key.getTimeout() +
@@ -57,21 +58,21 @@ public class KeyTest {
 
     @Test
     public void equalsWithNull() throws Exception {
-        final Key<String> key = new Key<>(ANY_STRING);
+        final Key key = new Key(ANY_STRING);
         assertFalse(key.equals(null));
     }
 
     @Test
     public void equalsWithObjectOfTheAnotherClass() throws Exception {
-        final Key<String> key = new Key<>(ANY_STRING);
+        final Key key = new Key(ANY_STRING);
         final String string = "Hello World!";
         assertFalse(key.equals(string));
     }
 
     @Test
     public void equalsTwoObjects() throws Exception {
-        final Key<String> first = new Key<>(ANY_STRING);
-        final Key<String> second = new Key<>(ANY_STRING);
+        final Key first = new Key(ANY_STRING);
+        final Key second = new Key(ANY_STRING);
         for (int i = 0; i < 5; i++) {
             assertTrue(first.equals(second));
             assertTrue(second.equals(first));
@@ -80,9 +81,9 @@ public class KeyTest {
 
     @Test
     public void equalsThreeObjects() throws Exception {
-        final Key<String> first = new Key<>(ANY_STRING);
-        final Key<String> second = new Key<>(ANY_STRING);
-        final Key<String> third = new Key<>(ANY_STRING);
+        final Key first = new Key(ANY_STRING);
+        final Key second = new Key(ANY_STRING);
+        final Key third = new Key(ANY_STRING);
         for (int i = 0; i < 5; i++) {
             assertTrue(first.equals(second));
             assertTrue(second.equals(third));
@@ -92,7 +93,7 @@ public class KeyTest {
 
     @Test
     public void hashCodeTest() throws Exception {
-        final Key<String> key = new Key<>(ANY_STRING);
+        final Key key = new Key(ANY_STRING);
         int hashCode = key.hashCode();
         for (int i = 0; i < 5; i++) {
             int temp = key.hashCode();
@@ -103,15 +104,15 @@ public class KeyTest {
 
     @Test
     public void whenCompareNullThenReturnNegativeOne() {
-        final Key<String> key = new Key<>(ANY_STRING);
+        final Key key = new Key(ANY_STRING);
         final int result = key.compareTo(null);
         assertTrue(result == -1);
     }
 
     @Test
     public void whenCompareThenReturnSomeValue() {
-        final Key<String> first = new Key<>(ANY_STRING);
-        final Key<String> second = new Key<>(ANY_STRING);
+        final Key first = new Key(ANY_STRING);
+        final Key second = new Key(ANY_STRING);
         final int result = first.compareTo(second);
         assertTrue(result != -1);
     }
